@@ -6,13 +6,17 @@ puts "Welcome to Ruby HTTP server"
 loop do
     puts "Taking requests"
     client = server.accept
-    request = client.gets
-    request_components = request.split(" ")
+    message = client.gets
+    request, _ = message.split("\r\n")
+    method, path, version = request.split(" ")
     response = ""
-    if request_components[1] != "/"
-        response = "HTTP/1.1 404 Not Found\r\n\r\n"
-    else 
-        response = "HTTP/1.1 200 OK\r\n\r\n"
+    if path.start_with?("/echo/")
+        begin
+            _, resource, req_param = path.split("/")
+            response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: #{req_param.length}\r\n\r\n#{req_param}"
+        rescue
+            response = "HTTP/1.1 500 Internal Server Error\r\n"
+        end
     end
     puts "This is what we are sending #{response}"
     client.puts response
